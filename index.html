@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경제사회연구원 비용 및 매출 관리</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2980b9;
+    --accent: #e74c3c;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-light: #7f8c8d;
+    --border: #e0e0e0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-logo {
+    font-size: 28px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .header .subtitle {
+    font-size: 13px;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  .back-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+  }
+
+  .back-btn:hover { background: rgba(255,255,255,0.25); }
+  .back-btn.visible { display: flex; }
+
+  .refresh-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+  }
+  .refresh-btn:hover { background: rgba(255,255,255,0.25); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: default; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+
+  .data-status {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 3px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 25px 20px;
+  }
+
+  /* ===== FRONT PAGE ===== */
+  .summary-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+  }
+
+  .summary-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 20px;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .summary-item {
+    text-align: center;
+  }
+
+  .summary-item .label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+
+  .summary-item .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .summary-item .value.accent { color: var(--accent); }
+  .summary-item .value.success { color: var(--success); }
+
+  .summary-item .value small {
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .progress-bar-container {
+    margin-top: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--primary-light), var(--success));
+    transition: width 1s ease;
+    min-width: 2px;
+  }
+
+  .progress-label {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ===== PROJECT GRID ===== */
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    color: var(--text);
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 25px;
+  }
+
+  .project-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 22px 16px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 2px solid transparent;
+  }
+
+  .project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    border-color: var(--primary-light);
+  }
+
+  .project-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin: 0 auto 12px;
+  }
+
+  .project-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .project-rate {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .project-rate-label {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+
+  /* ===== PROJECT DETAIL ===== */
+  .detail-page { display: none; }
+  .detail-page.active { display: block; }
+  .front-page.hidden { display: none; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 25px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card.clickable {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+
+  .stat-card.clickable:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+  }
+
+  .stat-card .click-hint {
+    font-size: 10px;
+    color: var(--primary-light);
+    position: absolute;
+    top: 10px;
+    right: 12px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stat-card .stat-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
+  .stat-card .stat-bar {
+    margin-top: 10px;
+    background: #ecf0f1;
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+  }
+
+  .stat-card .stat-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1s ease;
+  }
+
+  .stat-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    font-size: 36px;
+    opacity: 0.08;
+  }
+
+  /* ===== MODAL / DETAIL PANELS ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--card);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+
+  .modal h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--primary);
+  }
+
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 0 4px;
+  }
+
+  .modal-close:hover { color: var(--accent); }
+
+  table.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  table.detail-table th {
+    background: var(--primary);
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  table.detail-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table.detail-table tr:hover td {
+    background: #f8f9fa;
+  }
+
+  table.detail-table tr.clickable-row:hover td {
+    background: #e8f4fd;
+    cursor: pointer;
+  }
+
+  table.detail-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  table.detail-table tfoot td {
+    font-weight: 700;
+    background: #f0f2f5;
+    border-top: 2px solid var(--primary);
+  }
+
+  /* ===== YEARLY CHART ===== */
+  .chart-container {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    margin-top: 25px;
+  }
+
+  .chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 220px;
+    padding: 0 10px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar {
+    width: 100%;
+    max-width: 60px;
+    border-radius: 6px 6px 0 0;
+    transition: height 1s ease;
+    position: relative;
+    min-height: 2px;
+  }
+
+  .bar-value {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 17px; }
+    .summary-row { flex-direction: column; align-items: center; gap: 15px; }
+    .summary-item .value { font-size: 22px; }
+    .project-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .stat-card .stat-value { font-size: 18px; }
+    .bar-chart { height: 180px; }
+    .modal { padding: 20px; }
+  }
+
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .project-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .color-high { color: var(--success); }
+  .color-mid { color: var(--warning); }
+  .color-low { color: var(--accent); }
+  .bg-high { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+  .bg-mid { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .bg-low { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  .bg-primary { background: linear-gradient(135deg, #2980b9, #3498db); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" id="backBtn" onclick="goBack()">← 뒤로</button>
+  <div class="header-logo">🏛️</div>
+  <div>
+    <h1 id="headerTitle">경제사회연구원 비용 및 매출 관리</h1>
+    <div class="subtitle" id="headerSub">2026년 프로젝트 현황</div>
+    <div class="data-status" id="dataStatus">데이터 불러오는 중...</div>
+  </div>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadLiveData()" title="시트 데이터 새로고침">
+    <span id="refreshIcon">🔄</span> 새로고침
+  </button>
+</div>
+
+<!-- FRONT PAGE -->
+<div class="container front-page" id="frontPage">
+  <div class="summary-card fade-in">
+    <div class="summary-title">📊 2026년 전체 현황</div>
+    <div class="summary-row">
+      <div class="summary-item">
+        <div class="label">매출 목표</div>
+        <div class="value" id="totalTarget">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">현재 매출액</div>
+        <div class="value accent" id="totalRevenue">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">달성률</div>
+        <div class="value success" id="totalRate">-</div>
+      </div>
+    </div>
+    <div class="progress-bar-container" style="margin-top:20px;">
+      <div class="progress-bar" id="totalProgress" style="width:0%"></div>
+      <div class="progress-label" id="totalProgressLabel">0%</div>
+    </div>
+  </div>
+
+  <div class="section-title">📁 프로젝트</div>
+  <div class="project-grid" id="projectGrid"></div>
+</div>
+
+<!-- DETAIL PAGE -->
+<div class="container detail-page" id="detailPage">
+  <div id="detailContent"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const projects = [
+  {
+    id: 'asia',
+    name: '아시아미래포럼',
+    icon: '🌏',
+    color: '#3498db',
+    budget: 494750000,
+    used: 1053227,
+    revenueTarget: 700000000,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 4200000, used: 137227 },
+      { name: '판매수수료-광고수수료', budget: 106500000, used: 0 },
+      { name: '여비교통비-해외출장비', budget: 20000000, used: 0 },
+      { name: '지급수수료-공연/전시대행', budget: 244000000, used: 0 },
+      { name: '지급수수료-강사/연사료', budget: 100000000, used: 0 },
+      { name: '지급수수료-기타', budget: 18600000, used: 900000 },
+      { name: '운반보관비', budget: 50000, used: 0 },
+      { name: '원고료-기타', budget: 1000000, used: 0 },
+      { name: '인쇄제본비-기타', budget: 0, used: 16000 },
+      { name: '지급수수료-금융수수료', budget: 400000, used: 0 },
+    ],
+    yearly: [
+      { year: '2020', amount: 510000000, breakdown: [
+        { label: '이관 매출', amount: 510000000, detail: [
+          { company: '우리은행', amount: 19000000 },
+          { company: 'SK하이닉스', amount: 200000000 },
+          { company: 'GS칼텍스', amount: 50000000 },
+          { company: 'LS그룹', amount: 5000000 },
+          { company: 'LG유플러스', amount: 10000000 },
+          { company: '삼성전자', amount: 100000000 },
+          { company: '국민건강보험공단', amount: 6000000 },
+          { company: '현대자동차', amount: 100000000 },
+          { company: '농협은행', amount: 10000000 },
+          { company: 'LG', amount: 10000000 },
+        ]},
+      ]},
+      { year: '2021', amount: 550000000, breakdown: [
+        { label: '이관 매출', amount: 550000000, detail: [
+          { company: 'LG', amount: 10000000 },
+          { company: 'LG유플러스', amount: 10000000 },
+          { company: 'SK하이닉스', amount: 200000000 },
+          { company: '우리은행', amount: 10000000 },
+          { company: 'GS칼텍스', amount: 50000000 },
+          { company: '삼성전자', amount: 160000000 },
+          { company: '농협은행', amount: 10000000 },
+          { company: '현대자동차', amount: 100000000 },
+        ]},
+      ]},
+      { year: '2022', amount: 550000000, breakdown: [
+        { label: '이관 매출', amount: 550000000, detail: [
+          { company: 'LG', amount: 10000000 },
+          { company: 'SK하이닉스', amount: 200000000 },
+          { company: 'GS칼텍스', amount: 50000000 },
+          { company: '우리은행', amount: 10000000 },
+          { company: '삼성전자', amount: 160000000 },
+          { company: '현대자동차', amount: 110000000 },
+          { company: '농협은행', amount: 10000000 },
+        ]},
+      ]},
+      { year: '2023', amount: 550000000, breakdown: [
+        { label: '이관 매출', amount: 550000000, detail: [
+          { company: 'SK텔레콤', amount: 180000000 },
+          { company: '삼성전자', amount: 160000000 },
+          { company: '현대자동차', amount: 100000000 },
+          { company: 'GS칼텍스', amount: 50000000 },
+          { company: 'LG', amount: 40000000 },
+          { company: '우리은행', amount: 10000000 },
+          { company: '농협은행', amount: 10000000 },
+        ]},
+      ]},
+      { year: '2024', amount: 571000000, breakdown: [
+        { label: '이관 매출', amount: 565000000, detail: [
+          { company: 'SK텔레콤', amount: 180000000 },
+          { company: '삼성전자', amount: 160000000 },
+          { company: '현대자동차', amount: 100000000 },
+          { company: 'GS칼텍스', amount: 50000000 },
+          { company: 'LG', amount: 40000000 },
+          { company: '우리은행', amount: 10000000 },
+          { company: '농협중앙회', amount: 10000000 },
+          { company: 'LG전자', amount: 5000000 },
+          { company: '삼성SDS', amount: 5000000 },
+          { company: '한국항공우주산업', amount: 5000000 },
+        ]},
+        { label: '경사연 자체매출', amount: 6000000, detail: [
+          { company: '손해보험협회', amount: 3000000 },
+          { company: '한국금융투자협회', amount: 3000000 },
+        ]},
+      ]},
+      { year: '2025', amount: 584000000, breakdown: [
+        { label: '이관 매출', amount: 565000000, detail: [
+          { company: 'SK하이닉스', amount: 180000000 },
+          { company: '삼성전자', amount: 160000000 },
+          { company: '현대자동차', amount: 100000000 },
+          { company: 'GS칼텍스', amount: 50000000 },
+          { company: 'LG', amount: 40000000 },
+          { company: '우리은행', amount: 10000000 },
+          { company: '농협중앙회', amount: 10000000 },
+          { company: 'LG전자', amount: 5000000 },
+          { company: '삼성SDS', amount: 5000000 },
+          { company: '한국항공우주산업', amount: 5000000 },
+        ]},
+        { label: '경사연 자체매출', amount: 19000000, detail: [
+          { company: '넥슨', amount: 8000000 },
+          { company: '한국금융투자협회', amount: 3000000 },
+          { company: '손해보험협회', amount: 3000000 },
+          { company: '전국민간지원기관네트워크', amount: 2000000 },
+          { company: '유진기업', amount: 1000000 },
+          { company: '신한투자증권', amount: 1000000 },
+          { company: '개인 티켓', amount: 1000000 },
+        ]},
+      ]},
+      { year: '2026', amount: 0, breakdown: [] },
+    ]
+  },
+  {
+    id: 'regional',
+    name: '지역조사평가사업',
+    icon: '📋',
+    color: '#e67e22',
+    budget: 38480000,
+    used: 5183682,
+    revenueTarget: 65000000,
+    revenue: 15000000,
+    revenueByClient: [
+      { client: '새마을금고중앙회', amount: 15000000, month: '2026-03' }
+    ],
+    budgetItems: [
+      { name: '회의비-기타', budget: 1980000, used: 250882 },
+      { name: '여비교통비-국내출장비', budget: 3500000, used: 732800 },
+      { name: '통신비-우편료', budget: 100000, used: 0 },
+      { name: '지급수수료-기타', budget: 22500000, used: 4200000 },
+      { name: '인쇄제본비-기타', budget: 10400000, used: 0 },
+    ],
+    yearly: [
+      { year: '2026', amount: 15000000, breakdown: [
+        { label: '새마을금고중앙회', amount: 15000000 },
+      ]},
+    ]
+  },
+  {
+    id: 'energy',
+    name: '에너지정의포럼',
+    icon: '⚡',
+    color: '#27ae60',
+    budget: 29600000,
+    used: 455000,
+    revenueTarget: 80000000,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 800000, used: 455000 },
+      { name: '판매수수료-광고수수료', budget: 12000000, used: 0 },
+      { name: '지급수수료-강사/연사료', budget: 7800000, used: 0 },
+      { name: '지급수수료-기타', budget: 5000000, used: 0 },
+      { name: '인쇄제본비-기타', budget: 4000000, used: 0 },
+    ],
+    yearly: [
+      { year: '2023', amount: 63000000, breakdown: [
+        { label: '제4회', amount: 63000000, detail: [
+          { company: '현대자동차', amount: 10000000 },
+          { company: '포스코', amount: 10000000 },
+          { company: '효성그룹', amount: 5000000 },
+          { company: '삼성SDS', amount: 5000000 },
+          { company: 'LS그룹', amount: 5000000 },
+          { company: 'LG전자', amount: 5000000 },
+          { company: 'SK이노베이션', amount: 5000000 },
+          { company: '한국무역협회', amount: 5000000 },
+          { company: '에코프로', amount: 5000000 },
+          { company: '한국수력원자력', amount: 5000000 },
+          { company: '대한상공회의소', amount: 3000000 },
+        ]},
+      ]},
+      { year: '2024', amount: 88272728, breakdown: [
+        { label: '제5회', amount: 56181818, detail: [
+          { company: '현대자동차', amount: 15000000 },
+          { company: '포스코', amount: 10000000 },
+          { company: '한국수력원자력', amount: 9090909 },
+          { company: '한국전력', amount: 9090909 },
+          { company: 'SK하이닉스', amount: 5000000 },
+          { company: '코오롱', amount: 5000000 },
+          { company: '대한상공회의소', amount: 3000000 },
+        ]},
+        { label: '제6회', amount: 32090910, detail: [
+          { company: 'SK하이닉스', amount: 5000000 },
+          { company: '한국수력원자력', amount: 4545455 },
+          { company: '한국전력', amount: 4545455 },
+          { company: 'LS그룹', amount: 5000000 },
+          { company: '현대자동차', amount: 9090909 },
+          { company: '대한상공회의소', amount: 3000000 },
+          { company: '포스코', amount: 909091 },
+        ]},
+      ]},
+      { year: '2025', amount: 85000000, breakdown: [
+        { label: '제7회', amount: 38636364, detail: [
+          { company: '한국전력', amount: 9090909 },
+          { company: '현대자동차', amount: 9090909 },
+          { company: '한국수력원자력', amount: 9090909 },
+          { company: 'SK하이닉스', amount: 5000000 },
+          { company: 'LS그룹', amount: 5000000 },
+          { company: '대한상공회의소', amount: 1363636 },
+        ]},
+        { label: '제8회', amount: 46363636, detail: [
+          { company: '현대자동차', amount: 9090909 },
+          { company: '한국전력', amount: 9090909 },
+          { company: '한국수력원자력', amount: 9090909 },
+          { company: 'LS그룹', amount: 5000000 },
+          { company: 'SK하이닉스', amount: 5000000 },
+          { company: '포스코', amount: 5000000 },
+          { company: '에코프로', amount: 2727272 },
+          { company: '대한상공회의소', amount: 1363636 },
+        ]},
+      ]},
+      { year: '2026', amount: 0, breakdown: [] },
+    ]
+  },
+  {
+    id: 'governance',
+    name: '기업지배구조',
+    icon: '🏢',
+    color: '#8e44ad',
+    budget: 41900000,
+    used: 24244067,
+    revenueTarget: 272727273,
+    revenue: 291818181,
+    revenueByClient: [
+      { client: '한국기업투자홀딩스', amount: 181818182, month: '2026-01' },
+      { client: '영풍문화재단', amount: 90909090, month: '2026-01' },
+      { client: '한국기업거버넌스포럼', amount: 5000000, month: '2026-01' },
+      { client: '큐뱅', amount: 2000000, month: '2026-02' },
+      { client: '한국캐피탈주식회사', amount: 3000000, month: '2026-02' },
+      { client: '트러스톤자산운용', amount: 9090909, month: '2026-02' },
+    ],
+    budgetItems: [
+      { name: '회의비-기타', budget: 2100000, used: 1833737 },
+      { name: '여비교통비-해외출장비', budget: 10000000, used: 0 },
+      { name: '통신비-우편료', budget: 0, used: 7960 },
+      { name: '지급수수료-금융수수료', budget: 0, used: 163788 },
+      { name: '지급수수료-강사/연사료', budget: 10200000, used: 14109200 },
+      { name: '지급수수료-기타', budget: 17000000, used: 6190000 },
+      { name: '인쇄제본비-기타', budget: 2000000, used: 1892182 },
+      { name: '소모품비-기타', budget: 0, used: 47200 },
+      { name: '원고료-기타', budget: 600000, used: 0 },
+    ],
+    yearly: [
+      { year: '2025', amount: 181818182, breakdown: [
+        { label: '한국기업투자홀딩스', amount: 181818182 },
+      ]},
+      { year: '2026', amount: 291818181, breakdown: [
+        { label: '한국기업투자홀딩스', amount: 181818182 },
+        { label: '영풍문화재단', amount: 90909090 },
+        { label: '한국기업거버넌스포럼', amount: 5000000 },
+        { label: '큐뱅', amount: 2000000 },
+        { label: '한국캐피탈주식회사', amount: 3000000 },
+        { label: '트러스톤자산운용', amount: 9090909 },
+      ]},
+    ]
+  },
+  {
+    id: 'social_economy',
+    name: '사회적경제정책포럼',
+    icon: '🤝',
+    color: '#16a085',
+    budget: 6100000,
+    used: 0,
+    revenueTarget: 16363636,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 600000, used: 0 },
+      { name: '지급수수료-강사/연사료', budget: 4500000, used: 0 },
+      { name: '인쇄제본비-기타', budget: 1000000, used: 0 },
+    ],
+    yearly: []
+  },
+  {
+    id: 'dialogue',
+    name: '한국의대화',
+    icon: '💬',
+    color: '#2c3e50',
+    budget: 20000000,
+    used: 0,
+    revenueTarget: 20000000,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 1000000, used: 0 },
+      { name: '여비교통비-국내출장비', budget: 1500000, used: 0 },
+      { name: '지급수수료-공연/전시대행', budget: 17500000, used: 0 },
+    ],
+    yearly: []
+  },
+  {
+    id: 'solidarity',
+    name: '사회연대경제 별지',
+    icon: '🌱',
+    color: '#d35400',
+    budget: 7250000,
+    used: 0,
+    revenueTarget: 10000000,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 300000, used: 0 },
+      { name: '지급수수료-금융수수료', budget: 300000, used: 0 },
+      { name: '지급수수료-기타', budget: 1950000, used: 0 },
+      { name: '인쇄제본비-기타', budget: 5000000, used: 0 },
+    ],
+    yearly: []
+  },
+  {
+    id: 'digital',
+    name: '사람과디지털포럼',
+    icon: '💻',
+    color: '#2980b9',
+    budget: 330350000,
+    used: 1092267,
+    revenueTarget: 355000000,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 2700000, used: 1092267 },
+      { name: '판매수수료-광고수수료', budget: 56250000, used: 0 },
+      { name: '지급수수료-공연/전시대행', budget: 190000000, used: 0 },
+      { name: '지급수수료-강사/연사료', budget: 45000000, used: 0 },
+      { name: '지급수수료-연구용역비', budget: 4500000, used: 0 },
+      { name: '지급수수료-기타', budget: 31600000, used: 0 },
+    ],
+    yearly: [
+      { year: '1회(2022)', amount: 576200000, breakdown: [
+        { label: '경사연 자체매출', amount: 333200000, detail: [
+          { company: '카카오', amount: 200000000 },
+          { company: '넥슨', amount: 30000000 },
+          { company: '쿠팡', amount: 30000000 },
+          { company: '두나무', amount: 20000000 },
+          { company: '엔씨소프트', amount: 10000000 },
+          { company: '네이버', amount: 10000000 },
+          { company: '넷마블', amount: 10000000 },
+          { company: '한국항공우주산업(KAI)', amount: 5000000 },
+          { company: 'HMM', amount: 5000000 },
+          { company: '자동차산업협회', amount: 3000000 },
+          { company: '크래프톤', amount: 3000000 },
+          { company: 'NHN', amount: 3000000 },
+          { company: '㈜GS (지에스)', amount: 2000000 },
+          { company: '한국인터넷진흥원', amount: 2000000 },
+          { company: '한국인터넷기업협회', amount: 200000 },
+        ]},
+        { label: '이관 매출', amount: 75000000, detail: [
+          { company: 'LGU+', amount: 24000000 },
+          { company: '카카오', amount: 20000000 },
+          { company: 'KB지주(국민은행)', amount: 20000000 },
+          { company: '국민건강보험공단', amount: 6000000 },
+          { company: '엘지디스플레이', amount: 5000000 },
+        ]},
+        { label: '광고국 매출', amount: 168000000, detail: [
+          { company: '두나무', amount: 30000000 },
+          { company: '롯데지주', amount: 20000000 },
+          { company: 'KB지주(국민은행)', amount: 20000000 },
+          { company: 'KT', amount: 20000000 },
+          { company: 'SKT', amount: 20000000 },
+          { company: '교보생명', amount: 10000000 },
+          { company: '대한항공', amount: 10000000 },
+          { company: '에쓰오일', amount: 10000000 },
+          { company: '한화', amount: 10000000 },
+          { company: 'LGU+', amount: 10000000 },
+          { company: '스마일게이트', amount: 6000000 },
+          { company: '컴투스', amount: 2000000 },
+        ]},
+      ]},
+      { year: '2회(2023)', amount: 658090000, breakdown: [
+        { label: '경사연 자체매출', amount: 388200000, detail: [
+          { company: '카카오', amount: 220000000 },
+          { company: '엔씨소프트', amount: 90000000 },
+          { company: '넥슨', amount: 30000000 },
+          { company: '네이버', amount: 10000000 },
+          { company: '넷마블', amount: 10000000 },
+          { company: 'HMM', amount: 5000000 },
+          { company: 'CJ대한통운', amount: 4000000 },
+          { company: '개인', amount: 4200000 },
+          { company: '크래프톤', amount: 3000000 },
+          { company: '한국인터넷진흥원', amount: 3000000 },
+          { company: '현대로템', amount: 3000000 },
+          { company: 'NHN', amount: 2000000 },
+          { company: '㈜GS (지에스)', amount: 2000000 },
+          { company: '경기교통공사', amount: 1000000 },
+          { company: '티맵모빌리티', amount: 1000000 },
+        ]},
+        { label: '이관 매출', amount: 101890000, detail: [
+          { company: 'LGU+', amount: 24000000 },
+          { company: '두나무', amount: 20000000 },
+          { company: 'KB지주(국민은행)', amount: 20000000 },
+          { company: '현대차그룹(현대자동차)', amount: 10890000 },
+          { company: 'SK하이닉스', amount: 6000000 },
+          { company: '한국항공우주산업(KAI)', amount: 5000000 },
+          { company: '엘지디스플레이', amount: 5000000 },
+          { company: '국민건강보험공단', amount: 3000000 },
+          { company: '삼성전자', amount: 3000000 },
+          { company: 'SPC', amount: 3000000 },
+          { company: '롯데지주', amount: 2000000 },
+        ]},
+        { label: '광고국 매출', amount: 168000000, detail: [
+          { company: '두나무', amount: 30000000 },
+          { company: '롯데지주', amount: 20000000 },
+          { company: 'KB지주(국민은행)', amount: 20000000 },
+          { company: 'KT', amount: 20000000 },
+          { company: 'SKT', amount: 20000000 },
+          { company: '현대차그룹(현대자동차)', amount: 10000000 },
+          { company: '교보생명', amount: 10000000 },
+          { company: '대한항공', amount: 10000000 },
+          { company: '에쓰오일', amount: 10000000 },
+          { company: 'LGU+', amount: 10000000 },
+          { company: '스마일게이트', amount: 6000000 },
+          { company: '컴투스', amount: 2000000 },
+        ]},
+      ]},
+      { year: '3회(2024)', amount: 551469091, breakdown: [
+        { label: '경사연 자체매출', amount: 402579091, detail: [
+          { company: '카카오', amount: 220000000 },
+          { company: '영풍문화재단', amount: 90909091 },
+          { company: '엔씨소프트', amount: 20000000 },
+          { company: '네이버', amount: 10000000 },
+          { company: '넷마블', amount: 10000000 },
+          { company: '개인', amount: 8250000 },
+          { company: '서울특별시', amount: 6000000 },
+          { company: '현대로템', amount: 6000000 },
+          { company: 'HMM', amount: 5000000 },
+          { company: 'LG AI 연구원', amount: 3000000 },
+          { company: '토스(비바리퍼블리카)', amount: 3000000 },
+          { company: '하이브', amount: 3000000 },
+          { company: '북하우스퍼블리셔스', amount: 3000000 },
+          { company: '문학동네', amount: 3000000 },
+          { company: '한국제약바이오협회', amount: 3000000 },
+          { company: '삼성SDI', amount: 3000000 },
+          { company: '넥슨', amount: 3000000 },
+          { company: '한국과학기술원', amount: 1000000 },
+          { company: '인텔', amount: 1000000 },
+          { company: '크로네스코리아', amount: 420000 },
+        ]},
+        { label: '이관 매출', amount: 148890000, detail: [
+          { company: 'SK하이닉스', amount: 66000000 },
+          { company: 'LGU+', amount: 20000000 },
+          { company: '두나무', amount: 20000000 },
+          { company: 'KB지주(국민은행)', amount: 20000000 },
+          { company: '현대차그룹(현대자동차)', amount: 10890000 },
+          { company: '엘지디스플레이', amount: 5000000 },
+          { company: '삼성전자', amount: 3000000 },
+          { company: 'SPC', amount: 2000000 },
+          { company: '롯데지주', amount: 2000000 },
+        ]},
+      ]},
+      { year: '4회(2025)', amount: 503561717, breakdown: [
+        { label: '경사연 자체매출', amount: 293671717, detail: [
+          { company: '카카오', amount: 150000000 },
+          { company: '영풍문화재단', amount: 90909091 },
+          { company: '네이버', amount: 10000000 },
+          { company: '넷마블', amount: 10000000 },
+          { company: '카카오뱅크', amount: 7000000 },
+          { company: 'HMM', amount: 5000000 },
+          { company: '토스(비바리퍼블리카)', amount: 3000000 },
+          { company: '현대해상', amount: 3000000 },
+          { company: '삼성SDI', amount: 3000000 },
+          { company: '넥슨', amount: 3000000 },
+          { company: '엔씨소프트', amount: 3000000 },
+          { company: '개인', amount: 2810000 },
+          { company: '(주)디퍼루트', amount: 1543535 },
+          { company: '전국보건의료산업노동조합', amount: 909091 },
+          { company: '방송문화진흥회', amount: 500000 },
+        ]},
+        { label: '이관 매출', amount: 209890000, detail: [
+          { company: '두나무', amount: 75000000 },
+          { company: 'SK하이닉스', amount: 66000000 },
+          { company: 'LGU+', amount: 20000000 },
+          { company: 'KB지주(국민은행)', amount: 20000000 },
+          { company: '현대차그룹(현대자동차)', amount: 10890000 },
+          { company: '엘지전자', amount: 5000000 },
+          { company: '엘지디스플레이', amount: 5000000 },
+          { company: '삼성전자', amount: 3000000 },
+          { company: '엘지', amount: 3000000 },
+          { company: 'SPC', amount: 2000000 },
+        ]},
+      ]},
+      { year: '5회(2026)', amount: 0, breakdown: [] },
+    ]
+  },
+  {
+    id: 'literacy',
+    name: '디지털리터러시사업',
+    icon: '📱',
+    color: '#c0392b',
+    budget: 7050000,
+    used: 0,
+    revenueTarget: 275000000,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [
+      { name: '회의비-기타', budget: 300000, used: 0 },
+      { name: '지급수수료-기타', budget: 2350000, used: 0 },
+      { name: '인쇄제본비-기타', budget: 4400000, used: 0 },
+    ],
+    yearly: []
+  },
+  {
+    id: 'crypto',
+    name: '가상자산',
+    icon: '🪙',
+    color: '#f1c40f',
+    budget: 0,
+    used: 0,
+    revenueTarget: 0,
+    revenue: 0,
+    revenueByClient: [],
+    budgetItems: [],
+    yearly: []
+  }
+];
+
+// ===== UTILS =====
+function formatMoney(n) {
+  if (n === 0) return '0원';
+  if (n >= 100000000) {
+    const eok = Math.floor(n / 100000000);
+    const man = Math.floor((n % 100000000) / 10000);
+    if (man > 0) return `${eok}억 ${man.toLocaleString()}만원`;
+    return `${eok}억원`;
+  }
+  if (n >= 10000) {
+    return `${Math.floor(n / 10000).toLocaleString()}만원`;
+  }
+  return `${n.toLocaleString()}원`;
+}
+
+function formatMoneyFull(n) {
+  return n.toLocaleString() + '원';
+}
+
+function getRate(value, target) {
+  if (!target || target === 0) return 0;
+  return ((value / target) * 100);
+}
+
+function getRateColor(rate) {
+  if (rate >= 80) return 'color-high';
+  if (rate >= 30) return 'color-mid';
+  return 'color-low';
+}
+
+function getBarBg(rate) {
+  if (rate >= 80) return 'bg-high';
+  if (rate >= 30) return 'bg-mid';
+  return 'bg-low';
+}
+
+// ===== RENDER FRONT PAGE =====
+function renderFrontPage() {
+  const totalTarget = projects.reduce((s, p) => s + p.revenueTarget, 0);
+  const totalRevenue = projects.reduce((s, p) => s + p.revenue, 0);
+  const totalRate = getRate(totalRevenue, totalTarget);
+
+  document.getElementById('totalTarget').innerHTML = formatMoney(totalTarget);
+  document.getElementById('totalRevenue').innerHTML = formatMoney(totalRevenue);
+  document.getElementById('totalRate').innerHTML = totalRate.toFixed(1) + '%';
+
+  const bar = document.getElementById('totalProgress');
+  const label = document.getElementById('totalProgressLabel');
+  setTimeout(() => {
+    bar.style.width = Math.min(totalRate, 100) + '%';
+    label.textContent = totalRate.toFixed(1) + '%';
+  }, 300);
+
+  const grid = document.getElementById('projectGrid');
+  grid.innerHTML = '';
+  projects.forEach(p => {
+    const rate = getRate(p.revenue, p.revenueTarget);
+    const rateStr = p.revenueTarget > 0 ? rate.toFixed(1) + '%' : '-';
+    const colorClass = p.revenueTarget > 0 ? getRateColor(rate) : '';
+
+    const card = document.createElement('div');
+    card.className = 'project-card fade-in';
+    card.onclick = () => showProject(p.id);
+    card.innerHTML = `
+      <div class="project-icon" style="background:${p.color}15; color:${p.color}">${p.icon}</div>
+      <div class="project-name">${p.name}</div>
+      <div class="project-rate ${colorClass}">${rateStr}</div>
+      <div class="project-rate-label">매출 달성률</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ===== SHOW PROJECT DETAIL =====
+function showProject(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('frontPage').classList.add('hidden');
+  document.getElementById('detailPage').classList.add('active');
+  document.getElementById('backBtn').classList.add('visible');
+  document.getElementById('headerTitle').textContent = p.name;
+  document.getElementById('headerSub').textContent = '2026년 프로젝트 상세';
+
+  const revenueRate = getRate(p.revenue, p.revenueTarget);
+  const costRate = getRate(p.used, p.budget);
+  const revenueRateStr = p.revenueTarget > 0 ? revenueRate.toFixed(1) + '%' : '-';
+  const costRateStr = p.budget > 0 ? costRate.toFixed(1) + '%' : '-';
+
+  let html = `
+    <div class="stat-grid fade-in">
+      <div class="stat-card">
+        <div class="stat-label">2026 전체 예산</div>
+        <div class="stat-value" style="color:var(--primary)">${formatMoney(p.budget)}</div>
+        <div class="stat-sub">03. 프로젝트별 비용 및 매출 기준</div>
+        <div class="stat-icon">🗂️</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">2026 매출 목표</div>
+        <div class="stat-value">${formatMoney(p.revenueTarget)}</div>
+        <div class="stat-icon">🎯</div>
+      </div>
+      <div class="stat-card clickable" onclick="showRevenueDetail('${p.id}')">
+        <div class="click-hint">클릭하여 상세 보기 →</div>
+        <div class="stat-label">현시점 매출액</div>
+        <div class="stat-value" style="color:var(--accent)">${formatMoney(p.revenue)}</div>
+        <div class="stat-sub">거래처별 매출 상세</div>
+        <div class="stat-icon">💰</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">현시점 비용</div>
+        <div class="stat-value">${formatMoney(p.used)}</div>
+        <div class="stat-icon">📉</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">매출 목표 달성률</div>
+        <div class="stat-value ${p.revenueTarget > 0 ? getRateColor(revenueRate) : ''}">${revenueRateStr}</div>
+        <div class="stat-bar"><div class="stat-bar-fill ${getBarBg(revenueRate)}" style="width:${Math.min(revenueRate, 100)}%"></div></div>
+        <div class="stat-icon">📊</div>
+      </div>
+      <div class="stat-card clickable" onclick="showBudgetDetail('${p.id}')">
+        <div class="click-hint">클릭하여 상세 보기 →</div>
+        <div class="stat-label">예산 대비 비용 집행률</div>
+        <div class="stat-value ${p.budget > 0 ? getRateColor(100 - costRate) : ''}">${costRateStr}</div>
+        <div class="stat-bar"><div class="stat-bar-fill ${getBarBg(100 - costRate)}" style="width:${Math.min(costRate, 100)}%"></div></div>
+        <div class="stat-sub">예산 항목별 상세</div>
+        <div class="stat-icon">📋</div>
+      </div>
+    </div>
+  `;
+
+  // Yearly comparison chart
+  if (p.yearly.length > 0) {
+    const maxAmount = Math.max(...p.yearly.map(y => y.amount), 1);
+    let barsHtml = '';
+    p.yearly.forEach((y, idx) => {
+      const pct = (y.amount / maxAmount) * 100;
+      const isCurrent = y.year.includes('2026');
+      const hasBreakdown = y.breakdown && y.breakdown.length > 0;
+      const bg = isCurrent
+        ? 'background: linear-gradient(180deg, var(--accent), #e74c3c)'
+        : `background: linear-gradient(180deg, ${p.color}, ${p.color}cc)`;
+      const cursor = hasBreakdown ? 'cursor:pointer;' : '';
+      const hint = hasBreakdown
+        ? `<div style="font-size:10px;color:var(--primary-light);margin-top:4px;">▶ 상세보기</div>`
+        : '';
+      barsHtml += `
+        <div class="bar-group" ${hasBreakdown ? `onclick="showYearlyBreakdown('${p.id}', ${idx})"` : ''} style="${cursor}">
+          <div class="bar" style="height:${Math.max(pct, 1)}%; ${bg}">
+            <div class="bar-value">${formatMoney(y.amount)}</div>
+          </div>
+          <div class="bar-label">${y.year}${isCurrent ? '<br>(현재)' : ''}${hint}</div>
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="chart-container fade-in">
+        <div class="chart-title">📈 연도별 매출 비교 <span style="font-size:12px;color:var(--text-light);font-weight:400;">막대 클릭 시 매출귀속별 상세 확인</span></div>
+        <div class="bar-chart">${barsHtml}</div>
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="chart-container fade-in" style="text-align:center; color:var(--text-light); padding:40px;">
+        <div style="font-size:40px; margin-bottom:10px;">📈</div>
+        <div>연도별 매출 비교 데이터가 아직 없습니다.</div>
+      </div>
+    `;
+  }
+
+  document.getElementById('detailContent').innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+// ===== SHOW YEARLY BREAKDOWN MODAL =====
+function showYearlyBreakdown(id, idx) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  const y = p.yearly[idx];
+  if (!y || !y.breakdown || y.breakdown.length === 0) return;
+
+  const colors = ['#3498db','#27ae60','#e67e22','#9b59b6','#e74c3c','#1abc9c','#f39c12','#2c3e50'];
+  const total = y.breakdown.reduce((s, b) => s + b.amount, 0);
+
+  // Donut-style breakdown bars
+  let rowsHtml = '';
+  let hasAnyDetail = false;
+  y.breakdown.forEach((b, i) => {
+    if (b.amount === 0) return;
+    const pct = total > 0 ? ((b.amount / total) * 100).toFixed(1) : 0;
+    const color = colors[i % colors.length];
+    const hasDetail = b.detail && b.detail.length > 0;
+    if (hasDetail) hasAnyDetail = true;
+    const safeLabel = b.label.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const trClass = hasDetail ? 'clickable-row' : '';
+    const trClick = hasDetail ? `onclick="showBreakdownDetail('${id}', ${idx}, '${safeLabel}')"` : '';
+    const drillIcon = hasDetail ? `<span style="float:right;color:${color};font-size:11px;opacity:0.6;">▶ 상세</span>` : '';
+    rowsHtml += `
+      <tr class="${trClass}" ${trClick}>
+        <td>
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>
+          ${b.label}${drillIcon}
+        </td>
+        <td class="num">${formatMoneyFull(b.amount)}</td>
+        <td class="num">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;background:#ecf0f1;border-radius:4px;height:8px;min-width:60px;">
+              <div style="width:${pct}%;background:${color};height:8px;border-radius:4px;"></div>
+            </div>
+            <span style="min-width:38px;text-align:right;">${pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  const hintHtml = hasAnyDetail
+    ? `<div style="font-size:12px;color:var(--text-light);margin-top:12px;text-align:center;">▶ 상세 항목을 클릭하면 기업/기관별 내역을 볼 수 있습니다</div>`
+    : '';
+
+  let html = `<h3>📊 ${p.name} — ${y.year} 매출귀속별 상세</h3>
+    <div style="text-align:center;font-size:28px;font-weight:700;color:var(--primary);margin:16px 0 4px;">${formatMoneyFull(total)}</div>
+    <div style="text-align:center;font-size:12px;color:var(--text-light);margin-bottom:20px;">총 매출액</div>
+    <table class="detail-table">
+      <thead><tr><th>매출귀속</th><th class="num">금액</th><th class="num">비율</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+      <tfoot><tr><td>합계</td><td class="num">${formatMoneyFull(total)}</td><td class="num">100%</td></tr></tfoot>
+    </table>
+    ${hintHtml}`;
+
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+// ===== SHOW BREAKDOWN DETAIL MODAL (3rd level: company/org) =====
+function showBreakdownDetail(id, yearIdx, bLabel) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  const y = p.yearly[yearIdx];
+  if (!y) return;
+  const b = y.breakdown.find(x => x.label === bLabel);
+  if (!b || !b.detail || b.detail.length === 0) return;
+
+  const colors = ['#3498db','#27ae60','#e67e22','#9b59b6','#e74c3c','#1abc9c','#f39c12','#2c3e50'];
+  const total = b.detail.reduce((s, d) => s + d.amount, 0);
+
+  let rowsHtml = '';
+  b.detail.forEach((d, i) => {
+    const pct = total > 0 ? ((d.amount / total) * 100).toFixed(1) : 0;
+    const color = colors[i % colors.length];
+    rowsHtml += `
+      <tr>
+        <td>
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>
+          ${d.company}
+        </td>
+        <td class="num">${formatMoneyFull(d.amount)}</td>
+        <td class="num">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;background:#ecf0f1;border-radius:4px;height:8px;min-width:60px;">
+              <div style="width:${pct}%;background:${color};height:8px;border-radius:4px;"></div>
+            </div>
+            <span style="min-width:38px;text-align:right;">${pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  const html = `
+    <div style="margin-bottom:14px;">
+      <button onclick="showYearlyBreakdown('${id}', ${yearIdx})" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;transition:background 0.2s;" onmouseover="this.style.background='#dce3ea'" onmouseout="this.style.background='var(--bg)'">← 매출귀속별 보기로 돌아가기</button>
+    </div>
+    <h3>🏢 ${p.name} — ${y.year} · ${bLabel} 기업/기관별 상세</h3>
+    <div style="text-align:center;font-size:28px;font-weight:700;color:var(--primary);margin:16px 0 4px;">${formatMoneyFull(total)}</div>
+    <div style="text-align:center;font-size:12px;color:var(--text-light);margin-bottom:20px;">총 ${bLabel} 매출액</div>
+    <table class="detail-table">
+      <thead><tr><th>기업/기관</th><th class="num">금액</th><th class="num">비율</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+      <tfoot><tr><td>합계</td><td class="num">${formatMoneyFull(total)}</td><td class="num">100%</td></tr></tfoot>
+    </table>`;
+
+  document.getElementById('modalContent').innerHTML = html;
+}
+
+// ===== SHOW REVENUE DETAIL MODAL =====
+function showRevenueDetail(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  let html = `<h3>💰 ${p.name} - 거래처별 매출</h3>`;
+
+  if (p.revenueByClient.length === 0) {
+    html += `<div style="text-align:center; color:var(--text-light); padding:30px;">아직 발생한 매출이 없습니다.</div>`;
+  } else {
+    const total = p.revenueByClient.reduce((s, c) => s + c.amount, 0);
+    html += `<table class="detail-table">
+      <thead><tr><th>귀속월</th><th>거래처</th><th class="num">공급가액</th><th class="num">비율</th></tr></thead>
+      <tbody>`;
+    p.revenueByClient.forEach(c => {
+      const pct = ((c.amount / total) * 100).toFixed(1);
+      html += `<tr><td>${c.month}</td><td>${c.client}</td><td class="num">${formatMoneyFull(c.amount)}</td><td class="num">${pct}%</td></tr>`;
+    });
+    html += `</tbody><tfoot><tr><td colspan="2">합계</td><td class="num">${formatMoneyFull(total)}</td><td class="num">100%</td></tr></tfoot></table>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+// ===== SHOW BUDGET DETAIL MODAL =====
+function showBudgetDetail(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  let html = `<h3>📋 ${p.name} - 예산 항목별 집행 현황</h3>`;
+
+  if (p.budgetItems.length === 0) {
+    html += `<div style="text-align:center; color:var(--text-light); padding:30px;">배정된 예산 항목이 없습니다.</div>`;
+  } else {
+    html += `<table class="detail-table">
+      <thead><tr><th>예산 항목</th><th class="num">예산</th><th class="num">사용</th><th class="num">잔여</th><th class="num">집행률</th></tr></thead>
+      <tbody>`;
+
+    let totalBudget = 0, totalUsed = 0;
+    p.budgetItems.forEach(item => {
+      const remaining = item.budget - item.used;
+      const rate = item.budget > 0 ? ((item.used / item.budget) * 100).toFixed(1) + '%' : (item.used > 0 ? '초과' : '-');
+      const overBudget = item.used > item.budget && item.budget > 0;
+      totalBudget += item.budget;
+      totalUsed += item.used;
+      html += `<tr>
+        <td>${item.name}</td>
+        <td class="num">${formatMoneyFull(item.budget)}</td>
+        <td class="num">${formatMoneyFull(item.used)}</td>
+        <td class="num" style="${remaining < 0 ? 'color:var(--accent)' : ''}">${formatMoneyFull(remaining)}</td>
+        <td class="num" style="${overBudget ? 'color:var(--accent); font-weight:700' : ''}">${rate}</td>
+      </tr>`;
+    });
+
+    const totalRemaining = totalBudget - totalUsed;
+    const totalRateVal = totalBudget > 0 ? ((totalUsed / totalBudget) * 100).toFixed(1) + '%' : '-';
+    html += `</tbody><tfoot><tr>
+      <td>합계</td>
+      <td class="num">${formatMoneyFull(totalBudget)}</td>
+      <td class="num">${formatMoneyFull(totalUsed)}</td>
+      <td class="num" style="${totalRemaining < 0 ? 'color:var(--accent)' : ''}">${formatMoneyFull(totalRemaining)}</td>
+      <td class="num">${totalRateVal}</td>
+    </tr></tfoot></table>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+// ===== NAVIGATION =====
+function goBack() {
+  document.getElementById('frontPage').classList.remove('hidden');
+  document.getElementById('detailPage').classList.remove('active');
+  document.getElementById('backBtn').classList.remove('visible');
+  document.getElementById('headerTitle').textContent = '경제사회연구원 비용 및 매출 관리';
+  document.getElementById('headerSub').textContent = '2026년 프로젝트 현황';
+  document.getElementById('refreshBtn').style.display = '';
+  window.scrollTo(0, 0);
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('active');
+  }
+}
+
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+// ===== LIVE DATA (Apps Script) =====
+// ↓ Apps Script 배포 후 URL을 여기에 입력하세요
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwilb9PiVahVuO9YY_KmZ41N6P-zlhZ0PnVWiUTOhfOBxwtZgXErPVw-1Yoc7k1if0RtQ/exec';
+
+function setStatus(msg, isError) {
+  const el = document.getElementById('dataStatus');
+  if (el) {
+    el.textContent = msg;
+    el.style.color = isError ? '#e74c3c' : 'rgba(255,255,255,0.7)';
+  }
+}
+
+function setRefreshLoading(loading) {
+  const btn  = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  if (!btn || !icon) return;
+  btn.disabled = loading;
+  icon.textContent = loading ? '⏳' : '🔄';
+  icon.className   = loading ? 'spinner' : '';
+}
+
+async function loadLiveData() {
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    setStatus('⚠️ Apps Script URL 미설정 — 로컬 데이터 사용 중', true);
+    return;
+  }
+  setRefreshLoading(true);
+  setStatus('시트 데이터 불러오는 중...', false);
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    // 동적 필드만 시트 데이터로 업데이트
+    projects.forEach(p => {
+      const d = data.projects && data.projects[p.id];
+      if (!d) return;
+      if (d.budget        !== undefined) p.budget        = d.budget;
+      if (d.used          !== undefined) p.used          = d.used;
+      if (d.revenueTarget !== undefined) p.revenueTarget = d.revenueTarget;
+      if (d.revenue       !== undefined) p.revenue       = d.revenue;
+      if (d.revenueByClient && d.revenueByClient.length > 0) p.revenueByClient = d.revenueByClient;
+      if (d.budgetItems   && d.budgetItems.length   > 0) p.budgetItems   = d.budgetItems;
+    });
+
+    // 마지막 업데이트 시각 표시
+    const ts = data.updatedAt ? new Date(data.updatedAt) : new Date();
+    const label = ts.toLocaleString('ko-KR', {
+      month:'numeric', day:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    });
+    setStatus(`✅ 마지막 업데이트: ${label}`, false);
+
+    // 현재 화면 새로고침
+    const detailActive = document.querySelector('.detail-page.active');
+    if (detailActive) {
+      showProject(detailActive.id.replace('project-', ''));
+    } else {
+      renderFrontPage();
+    }
+  } catch (e) {
+    console.error('시트 데이터 로드 실패:', e);
+    setStatus('❌ 데이터 로드 실패 — 로컬 데이터 사용 중', true);
+  } finally {
+    setRefreshLoading(false);
+  }
+}
+
+// ===== INIT =====
+async function initApp() {
+  renderFrontPage();   // 하드코딩된 데이터로 즉시 렌더링
+  await loadLiveData(); // 백그라운드에서 시트 데이터 로드
+}
+
+initApp();
+</script>
+</body>
+</html>
