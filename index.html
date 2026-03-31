@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>경제사회연구원 비용 및 매출 관리</title>
+
+<!-- PWA 설정 -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1a5276">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- iOS 홈 화면 아이콘 / 전체화면 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="경사연">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 
@@ -1520,13 +1531,14 @@ async function loadLiveData() {
   }
 }
 
+// ===== SERVICE WORKER 등록 =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
 // ===== INIT =====
 async function initApp() {
   renderFrontPage();   // 하드코딩된 데이터로 즉시 렌더링
-  await loadLiveData(); // 백그라운드에서 시트 데이터 로드
-}
-
-initApp();
-</script>
-</body>
-</html>
+  await loadLiveData(); 
